@@ -18,7 +18,7 @@ View::~View(){
 
 }
 
-void View::init(Callbacks *callbacks,vector<util::PolygonMesh<VertexAttrib> >& meshes) 
+void View::init(Callbacks *callbacks, vector<util::PolygonMesh<VertexAttrib>>& meshes, Model& model) 
 {
     if (!glfwInit())
         exit(EXIT_FAILURE);
@@ -28,14 +28,14 @@ void View::init(Callbacks *callbacks,vector<util::PolygonMesh<VertexAttrib> >& m
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    window = glfwCreateWindow(800, 800, "The Rotating Square Illusion", NULL, NULL);
+    window = glfwCreateWindow(800, 800, "Spirograph", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
 
-     glfwSetWindowUserPointer(window, (void *)callbacks);
+    glfwSetWindowUserPointer(window, (void *)callbacks);
 
     //using C++ functions as callbacks to a C-style library
     glfwSetKeyCallback(window, 
@@ -57,34 +57,11 @@ void View::init(Callbacks *callbacks,vector<util::PolygonMesh<VertexAttrib> >& m
     // create the shader program
     program.createProgram(string("shaders/default.vert"),
                           string("shaders/default.frag"));
-    // assuming it got created, get all the shader variables that it uses
-    // so we can initialize them at some point
-    // enable the shader program
     program.enable();
     shaderLocations = program.getAllShaderVariables();
 
-    
-    //now we create an object that will be used to render this mesh in opengl
-    /*
-     * now we create an ObjectInstance for it.
-     * The ObjectInstance encapsulates a lot of the OpenGL-specific code
-     * to draw this object
-     */
-
-    /* so in the mesh, we have some attributes for each vertex. In the shader
-     * we have variables for each vertex attribute. We have to provide a mapping
-     * between attribute name in the mesh and corresponding shader variable
-     name.
-     *
-     * This will allow us to use PolygonMesh with any shader program, without
-     * assuming that the attribute names in the mesh and the names of
-     * shader variables will be the same.
-
-       We create such a shader variable -> vertex attribute mapping now
-     */
     map<string, string> shaderVarsToVertexAttribs;
 
-    // currently there are only two per-vertex attribute: position and color
     shaderVarsToVertexAttribs["vPosition"] = "position";
 
     for (int i=0;i<meshes.size();i++) {
@@ -109,62 +86,56 @@ void View::init(Callbacks *callbacks,vector<util::PolygonMesh<VertexAttrib> >& m
 
     frames = 0;
     time = glfwGetTime();
-}
 
-// Returns the transformation matrices for each rounded corner of a square
-std::vector<glm::mat4> getTransforms() {
-    return {
-        glm::scale(glm::mat4(1.0f), glm::vec3(-1.0f, 1.0f, 1.0f)),  // Top-left corner
-        glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f)),   // Top-right corner
-        glm::scale(glm::mat4(1.0f), glm::vec3(-1.0f, -1.0f, 1.0f)), // Bottom-right corner
-        glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, -1.0f, 1.0f))   // Bottom-left  
-    };
+    this->model = &model; // Assign the model pointer
+
+    // Generate and bind the Vertex Array Object (VAO)
+    glGenVertexArrays(1, &circleVAO);
+    glBindVertexArray(circleVAO);
+
+    // Generate and bind the Vertex Buffer Object (VBO)
+    glGenBuffers(1, &circleVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, circleVBO);
+
+    // Generate the circle outline vertices
+    model.generateCircleOutline(10.0f, 100); // Adjust radius and segments as needed
+    vector<VertexAttrib> circleVertices = model.getCircleVertices();
+
+    // Upload vertex data to the VBO
+    glBufferData(GL_ARRAY_BUFFER, circleVertices.size() * sizeof(VertexAttrib), &circleVertices[0], GL_STATIC_DRAW);
+
+    // Define the layout of the vertex data
+    GLint posAttrib = shaderLocations.getLocation("vPosition");
+    glEnableVertexAttribArray(posAttrib);
+    glVertexAttribPointer(posAttrib, 4, GL_FLOAT, GL_FALSE, sizeof(VertexAttrib), (void*)0);
+
+    // Unbind the VAO and VBO
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 }
 
 void View::display() {
     program.enable();
-    glClearColor(1, 1, 1, 1);
+    glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    int numSquares = 11;            // Number of rounded squares
-    float initScale = 1.0f;         // Initial scale of the square
-    float scaleDecrement = 0.1f;    // Scale decrement per square
+    // Bind the VAO
+    glBindVertexArray(circleVAO);
 
-    std::vector<glm::mat4> transforms = getTransforms();
+    // Set the modelview and projection matrices
+    glm::mat4 modelview = glm::mat4(1.0f);
+    glUniformMatrix4fv(shaderLocations.getLocation("modelview"), 1, GL_FALSE, glm::value_ptr(modelview));
+    glUniformMatrix4fv(shaderLocations.getLocation("projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-    // Draws each square, alternating between black and white and decreasing in size
-    for (int i = 0; i < numSquares; i++) {
+    // Set the color uniform
+    glm::vec4 color(1, 1, 1, 1); // White color
+    glUniform4fv(shaderLocations.getLocation("vColor"), 1, glm::value_ptr(color));
 
-        // Assigns the color of the current square
-        glm::vec4 color;
-        if (i % 2 == 0) color = glm::vec4(0, 0, 0, 1);
-        else color = glm::vec4(1, 1, 1, 1);
+    // Draw the circle outline using GL_LINE_STRIP
+    glDrawArrays(GL_LINE_STRIP, 0, model->getCircleVertices().size());
 
-        // Scales for the current square
-        float currentScale = initScale - (i * scaleDecrement);
-
-        // Applies transforms for each rounded corner of the current square
-        for (int j = 0; j < 4; j++) {
-            // Applies rotation
-            modelview = glm::rotate(glm::mat4(1.0), (float)glfwGetTime() * 2, glm::vec3(0,0,1));
-            // Applies scaling
-            modelview = glm::scale(modelview, glm::vec3(currentScale, currentScale, 1.0f));
-            // Applies appropriate transform
-            modelview *= transforms[j];                                                           
-
-            // Sends modelview matrix to GPU
-            glUniformMatrix4fv(shaderLocations.getLocation("modelview"), 1, GL_FALSE, glm::value_ptr(modelview));
-
-            // Sends projection matrix to GPU
-            glUniformMatrix4fv(shaderLocations.getLocation("projection"), 1, GL_FALSE, glm::value_ptr(projection));
-
-            // Sends the color to the GPU
-            glUniform4fv(shaderLocations.getLocation("vColor"), 1, glm::value_ptr(color));
-
-            // Draws the object
-            objects[j]->draw();
-        }
-    }
+    // Unbind the VAO
+    glBindVertexArray(0);
 
     glFlush();
     program.disable();
@@ -177,12 +148,16 @@ bool View::shouldWindowClose() {
 }
 
 void View::closeWindow() {
-    for (int i=0;i<objects.size();i++) {
+    for (int i = 0; i < objects.size(); i++) {
         objects[i]->cleanup();
         delete objects[i];
     }
     objects.clear();
-    glfwDestroyWindow(window);
 
+    // Delete the VBO and VAO
+    glDeleteBuffers(1, &circleVBO);
+    glDeleteVertexArrays(1, &circleVAO);
+
+    glfwDestroyWindow(window);
     glfwTerminate();
 }
