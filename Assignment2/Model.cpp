@@ -1,32 +1,21 @@
 #include "Model.h"
-#include <GL/gl.h>
-#include <cmath>
+#include "CircleOutline.h"
 
-#define PI 3.14159265358979323846
+Model::Model() {
+    int outerRadius = 300;       // Radius of the rounded corner
+    int innerRadius = 200;      // Radius of the inner circle
+    int seedRadius = 10;        // Radius of the seed
 
-Model::Model() {}
+    // Four rounded corners to represent a rounded square
+    meshes.push_back(CircleOutline(0, 0, outerRadius));
+    meshes.push_back(CircleOutline(0, 0, innerRadius));
+    meshes.push_back(CircleOutline(0, 0, seedRadius));
+}
 
 vector<util::PolygonMesh<VertexAttrib>> Model::getMeshes() {
     return meshes;
 }
 
-Model::~Model() {}
+Model::~Model() {
 
-void Model::generateCircleOutline(float radius, int segments) {
-    circleVertices.clear();
-    for (int i = 0; i <= segments; i++) {
-        float theta = 2.0f * PI * float(i) / float(segments);
-        float x = radius * cos(theta);
-        float y = radius * sin(theta);
-
-        VertexAttrib vertex;
-        vector<float> position = {x, y, 0.0f, 1.0f};  // Ensure 4D vector
-        vertex.setData("position", position);
-        
-        circleVertices.push_back(vertex);
-    }
-}
-
-vector<VertexAttrib> Model::getCircleVertices() {
-    return circleVertices;
 }

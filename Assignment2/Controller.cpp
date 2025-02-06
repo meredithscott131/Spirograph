@@ -17,7 +17,7 @@ Controller::~Controller()
 void Controller::run()
 {
     vector<util::PolygonMesh<VertexAttrib> > meshes = model.getMeshes();
-    view.init(this, meshes, model);
+    view.init(this,meshes);
     while (!view.shouldWindowClose()) {
         view.display();
     }
