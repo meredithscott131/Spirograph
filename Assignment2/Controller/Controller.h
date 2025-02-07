@@ -1,8 +1,8 @@
 #ifndef __CONTROLLER_H__
 #define __CONTROLLER_H__
 
-#include "View.h"
-#include "Model.h"
+#include "../View/View.h"
+#include "../Model/Model.h"
 #include "Callbacks.h"
 
 class Controller: public Callbacks

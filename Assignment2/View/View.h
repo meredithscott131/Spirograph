@@ -11,8 +11,8 @@
 #include <ObjectInstance.h>
 #include "PolygonMesh.h"
 #include "VertexAttrib.h"
-#include "Callbacks.h"
-#include "Model.h"
+#include "../Controller/Callbacks.h"
+#include "../Model/Model.h"
 
 
 class View

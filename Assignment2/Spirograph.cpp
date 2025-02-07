@@ -1,6 +1,6 @@
-#include "Model.h"
-#include "View.h"
-#include "Controller.h"
+#include "Model/Model.h"
+#include "View/View.h"
+#include "Controller/Controller.h"
 
 int main(int argc,char *argv[])
 {

@@ -1,18 +1,19 @@
-OBJS = Spirograph.o View.o Controller.o Model.o
+OBJS = Spirograph.o View/View.o Controller/Controller.o Model/Model.o
 INCLUDES = -I../include
 LIBS = -L../lib
 LDFLAGS = -lglad -lglfw3 
 CFLAGS = -g -std=c++11
 PROGRAM = Spirograph
 
-
 ifeq ($(OS),Windows_NT)     # is Windows_NT on XP, 2000, 7, Vista, 10...
     LDFLAGS += -lopengl32 -lgdi32
-    PROGRAM :=$(addsuffix .exe,$(PROGRAM))
-	COMPILER = g++
+    PROGRAM := $(addsuffix .exe,$(PROGRAM))
+    COMPILER = g++
+    RM = del /Q
 else ifeq ($(shell uname -s),Darwin)     # is MACOSX
     LDFLAGS += -framework Cocoa -framework OpenGL -framework IOKit
-	COMPILER = clang++
+    COMPILER = clang++
+    RM = rm -f
 endif
 
 Spirograph: clean $(OBJS)
@@ -21,20 +22,19 @@ Spirograph: clean $(OBJS)
 Spirograph.o: Spirograph.cpp
 	$(COMPILER) $(INCLUDES) $(CFLAGS) -c Spirograph.cpp
 
-View.o: View.cpp View.h
-	$(COMPILER) $(INCLUDES) $(CFLAGS) -c View.cpp	
+View/View.o: View/View.cpp View/View.h
+	$(COMPILER) $(INCLUDES) $(CFLAGS) -c View/View.cpp -o View/View.o
 
-Controller.o: Controller.cpp Controller.h
-	$(COMPILER) $(INCLUDES) $(CFLAGS) -c Controller.cpp	
+Controller/Controller.o: Controller/Controller.cpp Controller/Controller.h
+	$(COMPILER) $(INCLUDES) $(CFLAGS) -c Controller/Controller.cpp -o Controller/Controller.o
 
-Model.o: Model.cpp Model.h
-	$(COMPILER) $(INCLUDES) $(CFLAGS) -c Model.cpp		
-	
-RM = rm	-f
-ifeq ($(OS),Windows_NT)     # is Windows_NT on XP, 2000, 7, Vista, 10...
-    RM := del
-endif
+Model/Model.o: Model/Model.cpp Model/Model.h
+	$(COMPILER) $(INCLUDES) $(CFLAGS) -c Model/Model.cpp -o Model/Model.o
 
 clean: 
-	$(RM) $(OBJS) $(PROGRAM)
+	-$(RM) Spirograph.o
+	-$(RM) View\\View.o
+	-$(RM) Controller\\Controller.o
+	-$(RM) Model\\Model.o
+	-$(RM) $(PROGRAM)
     
