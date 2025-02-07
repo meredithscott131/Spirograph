@@ -12,18 +12,16 @@ vector<util::PolygonMesh<VertexAttrib>> Model::getMeshes() {
 }
 
 void Model::decreaseInnerRadius() {
-    if (innerRadius <= 5) {
-        innerRadius = 200;
+    if (innerRadius > 5) {
+        innerRadius -= 5;
     }
-    innerRadius -= 5;
     meshes[1] = CircleOutline(0, 0, innerRadius);
 }
 
 void Model::increaseInnerRadius() {
-    if (innerRadius >= 200) {
-        innerRadius = 5;
+    if (innerRadius < 200) {
+        innerRadius += 5;
     }
-    innerRadius += 5;
     meshes[1] = CircleOutline(0, 0, innerRadius);
 }
 
