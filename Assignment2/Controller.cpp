@@ -9,10 +9,7 @@ Controller::Controller(Model& m,View& v) {
     view = v;
 }
 
-Controller::~Controller()
-{
-
-}
+Controller::~Controller() {}
 
 void Controller::run()
 {
@@ -27,16 +24,17 @@ void Controller::run()
 void Controller::onkey(int key, int scancode, int action, int mods)
 {
     if (action == GLFW_PRESS) {
-        if (key == GLFW_KEY_I) {
-            model.decreaseInnerRadius();
-            view.updateInnerCircle(model.getMeshes()[1]);
-        }
-    } else if (action == GLFW_RELEASE) {
+        // Increase the inner circle radius when the 'L' key is released
         if (key == GLFW_KEY_L) {
             model.increaseInnerRadius();
             view.updateInnerCircle(model.getMeshes()[1]);
+        } 
+        // Decrease the inner circle radius when the 'I' key is released
+        else if (key == GLFW_KEY_I) {
+            model.decreaseInnerRadius();
+            view.updateInnerCircle(model.getMeshes()[1]);
         }
-    }
+    } 
 }
 
 // Reshape window while maintaining the aspect ratio

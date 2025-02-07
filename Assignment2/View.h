@@ -31,7 +31,6 @@ public:
     void updateInnerCircle(util::PolygonMesh<VertexAttrib> newMesh);
 
 private:   
-
     GLFWwindow* window;
     util::ShaderProgram program;
     util::ShaderLocationsVault shaderLocations;
