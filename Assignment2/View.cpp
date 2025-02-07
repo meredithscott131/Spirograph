@@ -8,6 +8,7 @@ using namespace std;
 #include <glm/gtc/type_ptr.hpp>
 
 #include "VertexAttribWithColor.h"
+#include <iostream>
 
 
 View::View() {
@@ -18,17 +19,19 @@ View::~View(){
 
 }
 
-void View::init(Callbacks *callbacks,vector<util::PolygonMesh<VertexAttrib> >& meshes) 
+void View::init(Callbacks *callbacks, Model &model) 
 {
     if (!glfwInit())
         exit(EXIT_FAILURE);
+
+    model = model;
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    window = glfwCreateWindow(800, 800, "The Rotating Square Illusion", NULL, NULL);
+    window = glfwCreateWindow(800, 800, "Spirograph", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -57,43 +60,22 @@ void View::init(Callbacks *callbacks,vector<util::PolygonMesh<VertexAttrib> >& m
     // create the shader program
     program.createProgram(string("shaders/default.vert"),
                           string("shaders/default.frag"));
-    // assuming it got created, get all the shader variables that it uses
-    // so we can initialize them at some point
     // enable the shader program
     program.enable();
     shaderLocations = program.getAllShaderVariables();
 
     
-    //now we create an object that will be used to render this mesh in opengl
-    /*
-     * now we create an ObjectInstance for it.
-     * The ObjectInstance encapsulates a lot of the OpenGL-specific code
-     * to draw this object
-     */
-
-    /* so in the mesh, we have some attributes for each vertex. In the shader
-     * we have variables for each vertex attribute. We have to provide a mapping
-     * between attribute name in the mesh and corresponding shader variable
-     name.
-     *
-     * This will allow us to use PolygonMesh with any shader program, without
-     * assuming that the attribute names in the mesh and the names of
-     * shader variables will be the same.
-
-       We create such a shader variable -> vertex attribute mapping now
-     */
+    // create an object that will be used to render this mesh in opengl
     map<string, string> shaderVarsToVertexAttribs;
-
-    // currently there are only two per-vertex attribute: position and color
     shaderVarsToVertexAttribs["vPosition"] = "position";
 
-    for (int i=0;i<meshes.size();i++) {
+    for (int i=0;i<model.getMeshes().size();i++) {
         util::ObjectInstance *obj = new util::ObjectInstance("triangles");
         obj->initPolygonMesh<VertexAttrib>(
             program,                    // the shader program
             shaderLocations,            // the shader locations
             shaderVarsToVertexAttribs,  // the shader variable -> attrib map
-            meshes[i]);                      // the actual mesh object
+            model.getMeshes()[i]);      // the actual mesh object
 
         objects.push_back(obj);
 
@@ -114,17 +96,17 @@ void View::init(Callbacks *callbacks,vector<util::PolygonMesh<VertexAttrib> >& m
 
 void View::display() {
     program.enable();
-    glClearColor(0, 0, 0, 1); // Set the background color to black
-    glClear(GL_COLOR_BUFFER_BIT); // Clear the screen
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     drawOuterCircle();
     drawInnerCircle();
     drawSeed();
 
-    glFlush(); // Finish rendering
+    glFlush();
     program.disable();
-    glfwSwapBuffers(window); // Swap the buffer to display the result
-    glfwPollEvents(); // Handle user input
+    glfwSwapBuffers(window);
+    glfwPollEvents();
 }
 
 void View::drawOuterCircle() {
@@ -143,10 +125,9 @@ void View::drawOuterCircle() {
 }
 
 void View::drawInnerCircle() {
-    static float theta = 0.0f; // Angle of movement around the outer circle
-    float R = 300.0f; // Outer circle radius
-    float r = 200.0f; // Inner circle radius
-    float speed = 0.05f; // Adjust for animation speed
+    static float theta = 0.0f;
+    float R = model.getOuterRadius();
+    float r = model.getInnerRadius();
 
     // Update the angle
     theta += speed;
@@ -177,10 +158,9 @@ void View::drawSeed() {
     static float theta = 0.0f; // Angle for the inner circle's center movement
     static float phi = 0.0f;   // Angle for the seed's rotation inside the inner circle
 
-    float R = 400.0f; // Outer circle radius
-    float r = 200.0f; // Inner circle radius
+    float R = model.getOuterRadius();
+    float r = model.getInnerRadius();
     float seedDistance = r / 2.0f; // Halfway between center and edge of inner circle
-    float speed = 0.05f;
 
     // Update angles
     theta += speed;  // Inner circle moves around the outer circle
@@ -206,6 +186,24 @@ void View::drawSeed() {
 
     objects[2]->draw(); // Assuming the 3rd mesh is the seed point
 }
+
+void View::updateInnerCircle(util::PolygonMesh<VertexAttrib> newMesh) {
+    // Ensure inner circle stays in objects[1]
+    delete objects[1];
+    objects[1] = new util::ObjectInstance("triangles");
+
+    map<string, string> shaderVarsToVertexAttribs;
+    shaderVarsToVertexAttribs["vPosition"] = "position";
+
+    objects[1]->initPolygonMesh<VertexAttrib>(
+        program,
+        shaderLocations,
+        shaderVarsToVertexAttribs,
+        newMesh);
+
+    cout << "Updated inner circle radius: " << model.getInnerRadius() << endl;
+}
+
 
 
 bool View::shouldWindowClose() {

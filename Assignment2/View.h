@@ -12,6 +12,7 @@
 #include "PolygonMesh.h"
 #include "VertexAttrib.h"
 #include "Callbacks.h"
+#include "Model.h"
 
 
 class View
@@ -19,14 +20,15 @@ class View
 public:
     View();
     ~View();
-    void init(Callbacks* callbacks,vector<util::PolygonMesh<VertexAttrib> >& meshes);
+    void init(Callbacks* callbacks, Model &model);
     void display();
     bool shouldWindowClose();
     void closeWindow();
     glm::mat4 projection;
     void drawOuterCircle();
     void drawInnerCircle();
-    void drawSeed(); 
+    void drawSeed();
+    void updateInnerCircle(util::PolygonMesh<VertexAttrib> newMesh);
 
 private:   
 
@@ -37,6 +39,8 @@ private:
     glm::mat4 modelview;
     int frames;
     double time;
+    Model model;
+    float speed = 0.025f;
 };
 
 #endif

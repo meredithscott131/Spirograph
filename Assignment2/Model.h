@@ -12,7 +12,16 @@ public:
     Model();
     ~Model();
     vector<util::PolygonMesh<VertexAttrib> > getMeshes();
+    int getOuterRadius() { return outerRadius; }
+    int getInnerRadius() { return innerRadius; }
+    int getSeedRadius() { return seedRadius; }
+    void decreaseInnerRadius();
+    void increaseInnerRadius();
+
 private:
     vector<util::PolygonMesh<VertexAttrib> > meshes;
+    int outerRadius = 300;      // Radius of the rounded corner
+    int innerRadius = 200;      // Radius of the inner circle
+    int seedRadius = 10;        // Radius of the seed
 };
 #endif

@@ -16,8 +16,7 @@ Controller::~Controller()
 
 void Controller::run()
 {
-    vector<util::PolygonMesh<VertexAttrib> > meshes = model.getMeshes();
-    view.init(this,meshes);
+    view.init(this,model);
     while (!view.shouldWindowClose()) {
         view.display();
     }
@@ -27,6 +26,17 @@ void Controller::run()
 
 void Controller::onkey(int key, int scancode, int action, int mods)
 {
+    if (action == GLFW_PRESS) {
+        if (key == GLFW_KEY_I) {
+            model.decreaseInnerRadius();
+            view.updateInnerCircle(model.getMeshes()[1]);
+        }
+    } else if (action == GLFW_RELEASE) {
+        if (key == GLFW_KEY_L) {
+            model.increaseInnerRadius();
+            view.updateInnerCircle(model.getMeshes()[1]);
+        }
+    }
 }
 
 // Reshape window while maintaining the aspect ratio
