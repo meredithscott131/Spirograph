@@ -19,12 +19,12 @@ View::~View(){
 
 }
 
-void View::init(Callbacks *callbacks, Model &model) 
-{
+void View::init(Callbacks *callbacks, Model &m) {
     if (!glfwInit())
         exit(EXIT_FAILURE);
 
-    model = model;
+    // Set the model
+    model = &m;
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -69,16 +69,15 @@ void View::init(Callbacks *callbacks, Model &model)
     map<string, string> shaderVarsToVertexAttribs;
     shaderVarsToVertexAttribs["vPosition"] = "position";
 
-    for (int i=0;i<model.getMeshes().size();i++) {
+    for (int i=0;i<model->getMeshes().size();i++) {
         util::ObjectInstance *obj = new util::ObjectInstance("triangles");
         obj->initPolygonMesh<VertexAttrib>(
             program,                    // the shader program
             shaderLocations,            // the shader locations
             shaderVarsToVertexAttribs,  // the shader variable -> attrib map
-            model.getMeshes()[i]);      // the actual mesh object
+            model->getMeshes()[i]);      // the actual mesh object
 
         objects.push_back(obj);
-
     }
 
     
@@ -92,7 +91,6 @@ void View::init(Callbacks *callbacks, Model &model)
     frames = 0;
     time = glfwGetTime();
 }
-
 
 void View::display() {
     program.enable();
@@ -109,25 +107,25 @@ void View::display() {
     glfwPollEvents();
 }
 
+// Draws the outer circle
 void View::drawOuterCircle() {
     modelview = glm::mat4(1.0f);
 
-    // Send the modelview matrix to GPU
+    // Send matrices to GPU
     glUniformMatrix4fv(shaderLocations.getLocation("modelview"), 1, GL_FALSE, glm::value_ptr(modelview));
-    // Send the projection matrix to GPU
     glUniformMatrix4fv(shaderLocations.getLocation("projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-    // Send the color to the GPU
     // Set color to red
     glUniform4fv(shaderLocations.getLocation("vColor"), 1, glm::value_ptr(glm::vec4(1, 0, 0, 1)));
 
     objects[0]->draw();
 }
 
+// Draws the inner circle
 void View::drawInnerCircle() {
     static float theta = 0.0f;
-    float R = model.getOuterRadius();
-    float r = model.getInnerRadius();
+    float R = model->getOuterRadius();
+    float r = model->getInnerRadius();
 
     // Update the angle
     theta += speed;
@@ -141,25 +139,26 @@ void View::drawInnerCircle() {
 
     // Apply transformations
     modelview = glm::mat4(1.0f);
-    modelview = glm::translate(modelview, glm::vec3(C_x, C_y, 0.0f)); // Move to rolling position
-    modelview = glm::rotate(modelview, phi, glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate for rolling
+    modelview = glm::translate(modelview, glm::vec3(C_x, C_y, 0.0f));
+    modelview = glm::rotate(modelview, phi, glm::vec3(0.0f, 0.0f, 1.0f));
 
     // Send matrices to GPU
     glUniformMatrix4fv(shaderLocations.getLocation("modelview"), 1, GL_FALSE, glm::value_ptr(modelview));
     glUniformMatrix4fv(shaderLocations.getLocation("projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-    // Set color
+    // Set color to orange
     glUniform4fv(shaderLocations.getLocation("vColor"), 1, glm::value_ptr(glm::vec4(1, 0.5, 0, 1)));
 
     objects[1]->draw();
 }
 
+// Draws the seed
 void View::drawSeed() {
     static float theta = 0.0f; // Angle for the inner circle's center movement
     static float phi = 0.0f;   // Angle for the seed's rotation inside the inner circle
 
-    float R = model.getOuterRadius();
-    float r = model.getInnerRadius();
+    float R = model->getOuterRadius();
+    float r = model->getInnerRadius();
     float seedDistance = r / 2.0f; // Halfway between center and edge of inner circle
 
     // Update angles
@@ -181,16 +180,18 @@ void View::drawSeed() {
     glUniformMatrix4fv(shaderLocations.getLocation("modelview"), 1, GL_FALSE, glm::value_ptr(modelview));
     glUniformMatrix4fv(shaderLocations.getLocation("projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-    // Set color (e.g., green)
+    // Set color to green
     glUniform4fv(shaderLocations.getLocation("vColor"), 1, glm::value_ptr(glm::vec4(0, 1, 0, 1)));
 
-    objects[2]->draw(); // Assuming the 3rd mesh is the seed point
+    objects[2]->draw();
 }
 
+// Updates the inner circle object with the new radius
 void View::updateInnerCircle(util::PolygonMesh<VertexAttrib> newMesh) {
-    // Ensure inner circle stays in objects[1]
+    // Remove old inner circle object and create a new one with the updated mesh
     delete objects[1];
     objects[1] = new util::ObjectInstance("triangles");
+    objects[1]->initPolygonMesh<VertexAttrib>(program, shaderLocations, {{"vPosition", "position"}}, model->getMeshes()[1]);
 
     map<string, string> shaderVarsToVertexAttribs;
     shaderVarsToVertexAttribs["vPosition"] = "position";
@@ -200,11 +201,7 @@ void View::updateInnerCircle(util::PolygonMesh<VertexAttrib> newMesh) {
         shaderLocations,
         shaderVarsToVertexAttribs,
         newMesh);
-
-    cout << "Updated inner circle radius: " << model.getInnerRadius() << endl;
 }
-
-
 
 bool View::shouldWindowClose() {
     return glfwWindowShouldClose(window);

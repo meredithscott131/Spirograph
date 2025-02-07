@@ -20,7 +20,7 @@ class View
 public:
     View();
     ~View();
-    void init(Callbacks* callbacks, Model &model);
+    void init(Callbacks* callbacks, Model &m); 
     void display();
     bool shouldWindowClose();
     void closeWindow();
@@ -39,7 +39,7 @@ private:
     glm::mat4 modelview;
     int frames;
     double time;
-    Model model;
+    Model* model;
     float speed = 0.025f;
 };
 
