@@ -15,13 +15,12 @@ public:
     int getOuterRadius() { return outerRadius; }
     int getInnerRadius() { return innerRadius; }
     int getSeedRadius() { return seedRadius; }
-    void decreaseInnerRadius();
-    void increaseInnerRadius();
+    void updateInnerRadius(bool increase);
 
 private:
-    int outerRadius = 300;      // Radius of the rounded corner
+    vector<util::PolygonMesh<VertexAttrib> > meshes;
+    int outerRadius = 400;      // Radius of the rounded corner
     int innerRadius = 200;      // Radius of the inner circle
     int seedRadius = 10;        // Radius of the seed
-    vector<util::PolygonMesh<VertexAttrib> > meshes;
 };
 #endif

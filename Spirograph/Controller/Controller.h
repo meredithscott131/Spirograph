@@ -19,6 +19,7 @@ public:
 private:
     View view;
     Model model;
+    bool curveVisible = true;   // Visibility of the seed curve
 };
 
 #endif

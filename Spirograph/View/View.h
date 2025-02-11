@@ -28,7 +28,10 @@ public:
     void drawOuterCircle();
     void drawInnerCircle();
     void drawSeed();
-    void updateInnerCircle(util::PolygonMesh<VertexAttrib> newMesh);
+    void drawCurve();
+    void updateInnerCircle(util::PolygonMesh<VertexAttrib> innerCircleMesh);
+    void updateCurve(const util::PolygonMesh<VertexAttrib>& newCurveMesh);
+    void setCurveVisibility(bool visible) { curveVisible = visible; } 
 
 private:   
     GLFWwindow* window;
@@ -39,7 +42,8 @@ private:
     int frames;
     double time;
     Model* model;
-    float speed = 0.025f;
+    float speed = 0.025f;       // speed of the inner circle and seed
+    bool curveVisible = true;   // visibility of the seed curve
 };
 
 #endif

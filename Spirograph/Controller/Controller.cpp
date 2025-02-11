@@ -21,20 +21,26 @@ void Controller::run()
     exit(EXIT_SUCCESS);
 }
 
-void Controller::onkey(int key, int scancode, int action, int mods)
-{
+void Controller::onkey(int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {
-        // Increase the inner circle radius when the 'L' key is released
-        if (key == GLFW_KEY_L) {
-            model.increaseInnerRadius();
+        // Decreases inner circle radius on lowercase 'i'
+        if (key == GLFW_KEY_I && !(mods & GLFW_MOD_SHIFT)) {
+            model.updateInnerRadius(false);
             view.updateInnerCircle(model.getMeshes()[1]);
-        } 
-        // Decrease the inner circle radius when the 'I' key is released
-        else if (key == GLFW_KEY_I) {
-            model.decreaseInnerRadius();
-            view.updateInnerCircle(model.getMeshes()[1]);
+            view.updateCurve(model.getMeshes()[3]);
         }
-    } 
+        // Increases inner circle radius on uppercase 'I' 
+        else if (key == GLFW_KEY_I && (mods & GLFW_MOD_SHIFT)) {
+            model.updateInnerRadius(true);
+            view.updateInnerCircle(model.getMeshes()[1]);
+            view.updateCurve(model.getMeshes()[3]);
+        }
+        // Toggles visibility of the seed curve on uppercase 'C' 
+        else if (key == GLFW_KEY_C && (mods & GLFW_MOD_SHIFT)) {
+            curveVisible = !curveVisible;
+            view.setCurveVisibility(curveVisible);
+        }
+    }
 }
 
 // Reshape window while maintaining the aspect ratio

@@ -31,7 +31,7 @@ void View::init(Callbacks *callbacks, Model &m) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    window = glfwCreateWindow(800, 800, "Spirograph", NULL, NULL);
+    window = glfwCreateWindow(900, 900, "Spirograph", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -72,10 +72,10 @@ void View::init(Callbacks *callbacks, Model &m) {
     for (int i=0;i<model->getMeshes().size();i++) {
         util::ObjectInstance *obj = new util::ObjectInstance("triangles");
         obj->initPolygonMesh<VertexAttrib>(
-            program,                    // the shader program
-            shaderLocations,            // the shader locations
-            shaderVarsToVertexAttribs,  // the shader variable -> attrib map
-            model->getMeshes()[i]);      // the actual mesh object
+            program,                        // the shader program
+            shaderLocations,                // the shader locations
+            shaderVarsToVertexAttribs,      // the shader variable -> attrib map
+            model->getMeshes()[i]);         // the mesh object
 
         objects.push_back(obj);
     }
@@ -97,6 +97,7 @@ void View::display() {
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    if (curveVisible) drawCurve();  // skip if curve visibility is off
     drawOuterCircle();
     drawInnerCircle();
     drawSeed();
@@ -155,26 +156,20 @@ void View::drawInnerCircle() {
 // Draws the seed
 void View::drawSeed() {
     static float theta = 0.0f; // Angle for the inner circle's center movement
-    static float phi = 0.0f;   // Angle for the seed's rotation inside the inner circle
 
     float R = model->getOuterRadius();
     float r = model->getInnerRadius();
-    float seedDistance = r / 2.0f; // Halfway between center and edge of inner circle
+    float d = r / 2.0f; // Distance from inner circle center to seed
 
-    // Update angles
-    theta += speed;  // Inner circle moves around the outer circle
-    phi += speed * (R / r); // Seed rotates inside the inner circle
+    // Update angle
+    theta += speed;
 
-    // Compute inner circle center
-    float C_x = (R - r) * cos(theta);
-    float C_y = (R - r) * sin(theta);
-
-    // Compute seed point inside the inner circle
-    float S_x = C_x + seedDistance * cos(phi); // Offset from inner circle center
-    float S_y = C_y + seedDistance * sin(phi);
+    // Compute seed's spirograph path with updated inner radius
+    float S_x = (R - r) * cos(theta) + d * cos((R - r) / r * theta);
+    float S_y = (R - r) * sin(theta) - d * sin((R - r) / r * theta);
 
     modelview = glm::mat4(1.0f);
-    modelview = glm::translate(modelview, glm::vec3(S_x, S_y, 0.0f)); // Move to seed point
+    modelview = glm::translate(modelview, glm::vec3(S_x, S_y, 0.0f));
 
     // Send transformations to GPU
     glUniformMatrix4fv(shaderLocations.getLocation("modelview"), 1, GL_FALSE, glm::value_ptr(modelview));
@@ -186,8 +181,22 @@ void View::drawSeed() {
     objects[2]->draw();
 }
 
+// Draws the curve of the seed
+void View::drawCurve() {
+    modelview = glm::mat4(1.0f);
+
+    // Send matrices to GPU
+    glUniformMatrix4fv(shaderLocations.getLocation("modelview"), 1, GL_FALSE, glm::value_ptr(modelview));
+    glUniformMatrix4fv(shaderLocations.getLocation("projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+    // Set color to green
+    glUniform4fv(shaderLocations.getLocation("vColor"), 1, glm::value_ptr(glm::vec4(0, 1, 0, 1)));
+
+    objects[3]->draw();
+}
+
 // Updates the inner circle object with the new radius
-void View::updateInnerCircle(util::PolygonMesh<VertexAttrib> newMesh) {
+void View::updateInnerCircle(util::PolygonMesh<VertexAttrib> innerCircleMesh) {
     // Remove old inner circle object and create a new one with the updated mesh
     delete objects[1];
     objects[1] = new util::ObjectInstance("triangles");
@@ -200,7 +209,20 @@ void View::updateInnerCircle(util::PolygonMesh<VertexAttrib> newMesh) {
         program,
         shaderLocations,
         shaderVarsToVertexAttribs,
-        newMesh);
+        innerCircleMesh);
+}
+
+// Updates the curve of the seed with the new radius
+void View::updateCurve(const util::PolygonMesh<VertexAttrib>& newCurveMesh) {
+    // Remove old curve object and create a new one with the updated mesh
+    delete objects[3];
+    objects[3] = new util::ObjectInstance("triangles");
+    objects[3]->initPolygonMesh<VertexAttrib>(
+        program,
+        shaderLocations,
+        {{"vPosition", "position"}},
+        newCurveMesh
+    );
 }
 
 bool View::shouldWindowClose() {
