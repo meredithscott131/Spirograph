@@ -124,23 +124,22 @@ void View::drawOuterCircle() {
 
 // Draws the inner circle
 void View::drawInnerCircle() {
-    static float theta = 0.0f;
-    float R = model->getOuterRadius();
-    float r = model->getInnerRadius();
-
-    // Update the angle
+    static float theta = 0.0f;              // Angle for the inner circle's center movement
     theta += speed;
 
-    // Calculate the center of the rolling inner circle
-    float C_x = (R - r) * cos(theta);
-    float C_y = (R - r) * sin(theta);
+    float R = model->getOuterRadius();      // Outer circle radius
+    float r = model->getInnerRadius();      // Inner circle radius
 
-    // Calculate the rotation angle of the inner circle to maintain rolling
+    // Calculating the center of the inner circle
+    float x = (R - r) * cos(theta);
+    float y = (R - r) * sin(theta);
+
+    // Calculating the rotation angle of the inner circle
     float phi = -((R - r) / r) * theta;
 
     // Apply transformations
     modelview = glm::mat4(1.0f);
-    modelview = glm::translate(modelview, glm::vec3(C_x, C_y, 0.0f));
+    modelview = glm::translate(modelview, glm::vec3(x, y, 0.0f));
     modelview = glm::rotate(modelview, phi, glm::vec3(0.0f, 0.0f, 1.0f));
 
     // Send matrices to GPU
@@ -155,21 +154,19 @@ void View::drawInnerCircle() {
 
 // Draws the seed
 void View::drawSeed() {
-    static float theta = 0.0f; // Angle for the inner circle's center movement
-
-    float R = model->getOuterRadius();
-    float r = model->getInnerRadius();
-    float d = r / 2.0f; // Distance from inner circle center to seed
-
-    // Update angle
+    static float theta = 0.0f;              // Angle for the seed's center movement
     theta += speed;
 
-    // Compute seed's spirograph path with updated inner radius
-    float S_x = (R - r) * cos(theta) + d * cos((R - r) / r * theta);
-    float S_y = (R - r) * sin(theta) - d * sin((R - r) / r * theta);
+    float R = model->getOuterRadius();      // Outer circle radius
+    float r = model->getInnerRadius();      // Inner circle radius
+    float d = r / 2.0f;                     // Distance from inner circle center to seed
+
+    // Calculating seed's spirograph path
+    float x = (R - r) * cos(theta) + d * cos((R - r) / r * theta);
+    float y = (R - r) * sin(theta) - d * sin((R - r) / r * theta);
 
     modelview = glm::mat4(1.0f);
-    modelview = glm::translate(modelview, glm::vec3(S_x, S_y, 0.0f));
+    modelview = glm::translate(modelview, glm::vec3(x, y, 0.0f));
 
     // Send transformations to GPU
     glUniformMatrix4fv(shaderLocations.getLocation("modelview"), 1, GL_FALSE, glm::value_ptr(modelview));
