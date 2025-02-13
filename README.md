@@ -12,9 +12,9 @@ In the View, the pushed meshes from the Model are drawn and transformed accordin
 - Toggle the visibility of the seed curve off and on by pressing the uppercase 'C' key
 - Circle outline generation via `CircleOutline.h`
 - Seed curve generation via `CurveOutline.h`
-- Draw meshes in the View via `View::drawOuterCircle()`, `View::drawInnerCircle()`, etc.
-- Update inner radius on key press via `Model::updateInnerRadius()`
-- Refresh meshes on key press via `View::updateInnerCircle()` and `View::updateCurve()`
+- Drawing of meshes in the View via `View::drawOuterCircle()`, `View::drawInnerCircle()`, etc.
+- Updating of inner radius on key press via `Model::updateInnerRadius()`
+- Refreshing of meshes on key press via `View::updateInnerCircle()` and `View::updateCurve()`
 
 To run the program after make use `./Spirograph`
 

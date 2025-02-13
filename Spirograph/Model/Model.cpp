@@ -12,7 +12,7 @@ Model::Model() {
     meshes.push_back(CircleOutline(0, 0, outerRadius));         // Outer circle
     meshes.push_back(CircleOutline(0, 0, innerRadius));         // Inner circle
     meshes.push_back(CircleOutline(0, 0, seedRadius));          // Seed
-    meshes.push_back(CurveOutline(outerRadius, innerRadius));   // Curve
+    meshes.push_back(CurveOutline(outerRadius, innerRadius));   // Seed Curve
 }
 
 // Get the meshes of the circle objects

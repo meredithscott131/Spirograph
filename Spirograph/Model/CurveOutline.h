@@ -19,23 +19,23 @@ public:
 Constructor for the seed's rotation outline.
 Takes in the outer and inner radii of the rolling circle.
 */
-CurveOutline::CurveOutline(float R, float r) {
+CurveOutline::CurveOutline(float outerRadius, float innerRadius) {
     // Create the vertex data
     vector<glm::vec4> positions;
 
-    int slices = 1000;                  // Resolution  
-    float distance = r / 2.0f;          // Offset for the seed (halfway between inner circle center and outer circle edge)
-    float PI = 3.141592653589793f;    
+    int slices = 1000;                      // Resolution  
+    float distance = innerRadius / 2.0f;    // Offset for the seed (halfway between inner circle center and outer circle edge)
+    float PI = 3.141592653589793f;
 
-    float loop = 2.0f * PI * (r / gcd((int)R, (int)r));
+    float loop = 2.0f * PI * (innerRadius / gcd((int)outerRadius, (int)innerRadius));
 
     // Generating the points of the seed path
     for (int i = 0; i <= slices; ++i) {
-        float theta = (float)i / slices * loop;
-        float phi = ((R - r) / r) * theta;
+        float theta = (float) i / slices * loop;
+        float phi = ((outerRadius - innerRadius) / innerRadius) * theta;
 
-        float x = (R - r) * cos(theta) + distance * cos(phi);
-        float y = (R - r) * sin(theta) - distance * sin(phi);
+        float x = (outerRadius - innerRadius) * cos(theta) + distance * cos(phi);
+        float y = (outerRadius - innerRadius) * sin(theta) - distance * sin(phi);
 
         positions.push_back(glm::vec4(x, y, 0.0, 1.0));
     }

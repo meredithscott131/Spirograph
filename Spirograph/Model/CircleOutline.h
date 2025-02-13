@@ -22,20 +22,18 @@ CircleOutline::CircleOutline(int x, int y, int radius) {
     // Create the vertex data
     vector<glm::vec4> positions;
 
-    int SLICES = 50;  // More slices for a smoother circle
-    float PI = 3.14159;
-    float cx = x;
-    float cy = y;
+    int slices = 50;                    // Resolution
+    float PI = 3.141592653589793f; 
 
-    // Generate vertices along the circle's circumference
-    for (int i = 0; i <= SLICES; ++i) {
-        float theta = (float)i / SLICES * 2.0f * PI;  // Full circle (0 to 2*pi)
-        float px = cx + radius * cos(theta);
-        float py = cy + radius * sin(theta);
+    // Generating vertices of the circle
+    for (int i = 0; i <= slices; ++i) {
+        float theta = (float)i / slices * 2.0f * PI;
+        float px = x + radius * cos(theta);
+        float py = y + radius * sin(theta);
         positions.push_back(glm::vec4(px, py, 0.0, 1.0));
     }
 
-    // Create vertex attributes
+    // Creating vertex attributes
     vector<VertexAttrib> vertexData;
     for (int i = 0; i < positions.size(); i++) {
         vector<float> data;
@@ -47,21 +45,19 @@ CircleOutline::CircleOutline(int x, int y, int radius) {
         vertexData.push_back(v);
     }
 
-    // Create indices for drawing the circle using lines
+    // Creating indices
     vector<unsigned int> indices;
-    for (int i = 0; i < SLICES; ++i) {
+    for (int i = 0; i < slices; ++i) {
         indices.push_back(i);
         indices.push_back(i + 1);
     }
-    
-    // Closing the last line for the circle (looping back to the first point)
-    indices.push_back(SLICES);
+    indices.push_back(slices);
     indices.push_back(0);
 
     this->setVertexData(vertexData);
-    this->setPrimitives(indices);           // Give it the index data that forms the outline
-    this->setPrimitiveType(GL_LINE_LOOP);   // Use GL_LINE_LOOP to connect the points in a circle
-    this->setPrimitiveSize(2);              // 2 vertices per line (to form a line between points)
+    this->setPrimitives(indices);
+    this->setPrimitiveType(GL_LINE_LOOP);
+    this->setPrimitiveSize(2);
 }
 
 #endif

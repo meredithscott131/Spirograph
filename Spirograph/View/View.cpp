@@ -124,18 +124,18 @@ void View::drawOuterCircle() {
 
 // Draws the inner circle
 void View::drawInnerCircle() {
-    static float theta = 0.0f;              // Angle for the inner circle's center movement
+    static float theta = 0.0f;                        // Angle for the inner circle's movement
     theta += speed;
 
-    float R = model->getOuterRadius();      // Outer circle radius
-    float r = model->getInnerRadius();      // Inner circle radius
+    float outerRadius = model->getOuterRadius();      // Outer circle radius
+    float innerRadius = model->getInnerRadius();      // Inner circle radius
 
     // Calculating the center of the inner circle
-    float x = (R - r) * cos(theta);
-    float y = (R - r) * sin(theta);
+    float x = (outerRadius - innerRadius) * cos(theta);
+    float y = (outerRadius - innerRadius) * sin(theta);
 
     // Calculating the rotation angle of the inner circle
-    float phi = -((R - r) / r) * theta;
+    float phi = -((outerRadius - innerRadius) / innerRadius) * theta;
 
     // Apply transformations
     modelview = glm::mat4(1.0f);
@@ -154,16 +154,16 @@ void View::drawInnerCircle() {
 
 // Draws the seed
 void View::drawSeed() {
-    static float theta = 0.0f;              // Angle for the seed's center movement
+    static float theta = 0.0f;                        // Angle for the seed's movement
     theta += speed;
 
-    float R = model->getOuterRadius();      // Outer circle radius
-    float r = model->getInnerRadius();      // Inner circle radius
-    float d = r / 2.0f;                     // Distance from inner circle center to seed
+    float outerRadius = model->getOuterRadius();      // Outer circle radius
+    float innerRadius = model->getInnerRadius();      // Inner circle radius
+    float distance = innerRadius / 2.0f;              // Distance from inner circle center to seed
 
-    // Calculating seed's spirograph path
-    float x = (R - r) * cos(theta) + d * cos((R - r) / r * theta);
-    float y = (R - r) * sin(theta) - d * sin((R - r) / r * theta);
+    // Calculating seed's path
+    float x = (outerRadius - innerRadius) * cos(theta) + distance * cos((outerRadius - innerRadius) / innerRadius * theta);
+    float y = (outerRadius - innerRadius) * sin(theta) - distance * sin((outerRadius - innerRadius) / innerRadius * theta);
 
     modelview = glm::mat4(1.0f);
     modelview = glm::translate(modelview, glm::vec3(x, y, 0.0f));
@@ -193,20 +193,15 @@ void View::drawCurve() {
 }
 
 // Updates the inner circle object with the new radius
-void View::updateInnerCircle(util::PolygonMesh<VertexAttrib> innerCircleMesh) {
+void View::updateInnerCircle(util::PolygonMesh<VertexAttrib> newInnerCircleMesh) {
     // Remove old inner circle object and create a new one with the updated mesh
     delete objects[1];
     objects[1] = new util::ObjectInstance("triangles");
-    objects[1]->initPolygonMesh<VertexAttrib>(program, shaderLocations, {{"vPosition", "position"}}, model->getMeshes()[1]);
-
-    map<string, string> shaderVarsToVertexAttribs;
-    shaderVarsToVertexAttribs["vPosition"] = "position";
-
     objects[1]->initPolygonMesh<VertexAttrib>(
         program,
         shaderLocations,
-        shaderVarsToVertexAttribs,
-        innerCircleMesh);
+        {{"vPosition", "position"}},
+        newInnerCircleMesh);
 }
 
 // Updates the curve of the seed with the new radius

@@ -23,15 +23,15 @@ void Controller::run()
 
 void Controller::onkey(int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {
-        // Decreases inner circle radius on lowercase 'i'
-        if (key == GLFW_KEY_I && !(mods & GLFW_MOD_SHIFT)) {
-            model.updateInnerRadius(false);
+        // Increases inner circle radius on uppercase 'I' 
+        if (key == GLFW_KEY_I && (mods & GLFW_MOD_SHIFT)) {
+            model.updateInnerRadius(true);
             view.updateInnerCircle(model.getMeshes()[1]);
             view.updateCurve(model.getMeshes()[3]);
         }
-        // Increases inner circle radius on uppercase 'I' 
-        else if (key == GLFW_KEY_I && (mods & GLFW_MOD_SHIFT)) {
-            model.updateInnerRadius(true);
+        // Decreases inner circle radius on lowercase 'i'
+        else if (key == GLFW_KEY_I && !(mods & GLFW_MOD_SHIFT)) {
+            model.updateInnerRadius(false);
             view.updateInnerCircle(model.getMeshes()[1]);
             view.updateCurve(model.getMeshes()[3]);
         }

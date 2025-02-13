@@ -29,7 +29,7 @@ public:
     void drawInnerCircle();
     void drawSeed();
     void drawCurve();
-    void updateInnerCircle(util::PolygonMesh<VertexAttrib> innerCircleMesh);
+    void updateInnerCircle(util::PolygonMesh<VertexAttrib> newInnerCircleMesh);
     void updateCurve(const util::PolygonMesh<VertexAttrib>& newCurveMesh);
     void setCurveVisibility(bool visible) { curveVisible = visible; } 
 
