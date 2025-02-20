@@ -1,4 +1,4 @@
-# Assignment 2: Spirographs
+# Spirograph
 This interactive graphic simulates a spirograph, visualizing how the pattern changes with the cirlce size.
 
 ### Program Design
